@@ -24,8 +24,9 @@ def get_subject():
     grade = request.form.get('grade')
     class_number = request.form.get('class_number')
     student_id = request.form.get('student_id')
+    test_time_str = request.form.get('test_time')
 
-    print(f"Received: grade={grade}, class_number={class_number}, student_id={student_id}")
+    print(f"Received: grade={grade}, class_number={class_number}, student_id={student_id}, test_time={test_time_str}")
 
     student_data = get_sheet_data(STUDENT_SHEET_URL)
     timetable_data = get_sheet_data(TIMETABLE_SHEET_URL)
@@ -36,14 +37,15 @@ def get_subject():
     if student_data is None or timetable_data is None:
         return 'Error reading Google Sheets data.'
 
-    current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data)
+    test_time = datetime.datetime.strptime(test_time_str, "%H:%M").time() if test_time_str else None
+    current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time)
 
     return render_template('subject.html', subject=current_subject)
 
-def find_current_subject(grade, class_number, student_id, student_data, timetable_data):
+def find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time=None):
     now = datetime.datetime.now()
     current_day = now.weekday()  # 월요일=0, 일요일=6
-    current_time = now.time()
+    current_time = test_time if test_time else now.time()
 
     # 요일 맵핑
     days = ['월', '화', '수', '목', '금']
