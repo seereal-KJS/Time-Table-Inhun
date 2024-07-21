@@ -87,7 +87,7 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
             student_row = student_data[(student_data['학년'] == str(grade)) & 
                                        (student_data['반'] == str(class_number)) & 
                                        (student_data['번호'] == str(student_id))]
-            print("grade, class_number, studdn_id)
+            print("grade, class_number, studdn_id")
             print(grade, class_number, student_id)
             print(f"Filtered Student Row: {student_row}")  # 디버깅용
             if student_row.empty:
