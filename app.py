@@ -36,6 +36,8 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
     current_day = test_day if test_day is not None else now.weekday()  # 월요일=0, 일요일=6
     current_time = test_time if test_time else now.time()
 
+    print(f"Current Day: {current_day}, Current Time: {current_time}")  # 디버깅용
+
     # 요일 맵핑
     days = ['월', '화', '수', '목', '금']
 
@@ -57,12 +59,16 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
             period_index = i
             break
 
+    print(f"Period Index: {period_index}")  # 디버깅용
+
     # 쉬는 시간일 경우 다음 교시로 변경
     if period_index == -1:
         for i, (start, end) in enumerate(periods):
             if current_time < start:
                 period_index = i
                 break
+
+    print(f"Adjusted Period Index: {period_index}")  # 디버깅용
 
     # 현재 교시가 마지막 교시 이후인 경우
     if period_index == -1 or period_index >= len(periods):
@@ -123,3 +129,4 @@ def get_subject():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
