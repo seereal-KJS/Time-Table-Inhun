@@ -5,7 +5,7 @@
     <title>Subject Finder</title>
 </head>
 <body>
-    <h1>Enter Grade, Class Number, Student ID, and Test Time</h1>
+    <h1>Enter Grade, Class Number, Student ID, Test Day, and Test Time</h1>
     <form action="/subject" method="post">
         <label for="grade">Grade:</label>
         <input type="text" id="grade" name="grade" required>
@@ -13,6 +13,8 @@
         <input type="text" id="class_number" name="class_number" required>
         <label for="student_id">Student ID:</label>
         <input type="text" id="student_id" name="student_id" required>
+        <label for="test_day">Test Day (월, 화, 수, 목, 금):</label>
+        <input type="text" id="test_day" name="test_day" placeholder="optional">
         <label for="test_time">Test Time (HH:MM):</label>
         <input type="text" id="test_time" name="test_time" placeholder="optional">
         <button type="submit">Find Subject</button>
