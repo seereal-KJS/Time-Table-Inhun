@@ -11,8 +11,9 @@ TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwK
 # Load data
 try:
     student_data = pd.read_csv(STUDENT_SHEET_URL, encoding='utf-8', header=2)
-    student_data = student_data.drop(0)  # 첫 번째 행 제거
+    student_data = student_data[1:]  # 첫 번째 행 제거
     student_data.columns = ['학년', '반', '번호', '교양', 'A', 'B', 'C', 'D', 'E', 'F']
+    student_data = student_data.applymap(str)  # 모든 데이터를 문자열로 변환
     timetable_data = pd.read_csv(TIMETABLE_SHEET_URL, encoding='utf-8', header=0)
 except Exception as e:
     print("Error loading data:", e)
@@ -83,9 +84,9 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
         immediate_subjects = ['확률과 통계', '영어 독해와 작문', '환경', '미술창작', '스포츠', '동아리', '자치']
         if current_code in ['A', 'B', 'C', 'D', 'E', 'F', '교양']:
             # 학생의 선택과목 찾기
-            student_row = student_data[(student_data['학년'] == grade) & 
-                                       (student_data['반'] == class_number) & 
-                                       (student_data['번호'] == student_id)]
+            student_row = student_data[(student_data['학년'] == str(grade)) & 
+                                       (student_data['반'] == str(class_number)) & 
+                                       (student_data['번호'] == str(student_id))]
             print(f"Filtered Student Row: {student_row}")  # 디버깅용
             if student_row.empty:
                 print("Student ID not found")
