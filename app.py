@@ -5,11 +5,15 @@ import datetime
 app = Flask(__name__)
 
 # Google Sheets 설정
-STUDENT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/11RqrhH7lIUnCmOFM0RPZeqcMHT_OVGiFjMzfByJQCJw/edit?usp=sharing'
-TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwKYh5vcD42b-slxa2QBnJx-8h9uo/edit?usp=sharing'
+STUDENT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/11RqrhH7lIUnCmOFM0RPZeqcMHT_OVGiFjMzfByJQCJw/export?format=csv'
+TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwKYh5vcD42b-slxa2QBnJx-8h9uo/export?format=csv'
 
 def get_sheet_data(url):
-    return pd.read_csv(url)
+    try:
+        return pd.read_csv(url, error_bad_lines=False, warn_bad_lines=True)
+    except pd.errors.ParserError as e:
+        print("Error reading CSV:", e)
+        return None
 
 @app.route('/')
 def index():
@@ -17,25 +21,19 @@ def index():
 
 @app.route('/subject', methods=['POST'])
 def get_subject():
-    student_id = request.form['student_id']
+    grade = request.form['grade']
+    class_number = request.form['class_number']
     student_data = get_sheet_data(STUDENT_SHEET_URL)
     timetable_data = get_sheet_data(TIMETABLE_SHEET_URL)
 
-    selected_subjects = find_selected_subjects(student_id, student_data)
-    if selected_subjects is None:
-        return 'Student ID not found.'
+    if student_data is None or timetable_data is None:
+        return 'Error reading Google Sheets data.'
 
-    current_subject = find_current_subject(selected_subjects, timetable_data)
+    current_subject = find_current_subject(grade, class_number, timetable_data)
 
     return render_template('subject.html', subject=current_subject)
 
-def find_selected_subjects(student_id, student_data):
-    student_row = student_data[student_data['Student ID'] == student_id]
-    if not student_row.empty:
-        return student_row.iloc[0].to_dict()
-    return None
-
-def find_current_subject(selected_subjects, timetable_data):
+def find_current_subject(grade, class_number, timetable_data):
     now = datetime.datetime.now()
     current_day = now.weekday()  # 월요일=0, 일요일=6
     current_time = now.time()
@@ -65,15 +63,21 @@ def find_current_subject(selected_subjects, timetable_data):
                 period_index = i
                 break
 
-    if period_index == -1:
+    # 현재 교시가 마지막 교시 이후인 경우
+    if period_index == -1 or period_index >= len(periods):
         return "No class at this time"
 
     # 현재 요일의 시간표 정보 가져오기
-    if current_day < len(timetable_data) and period_index + 1 < len(timetable_data):
-        return timetable_data.iloc[period_index + 1, current_day + 1]
-    else:
-        return "No class at this time"
+    try:
+        grade_class_column = f"{grade}-{class_number}"
+        if current_day < len(timetable_data.columns) - 1:
+            current_subject = timetable_data.iloc[period_index][grade_class_column]
+        else:
+            return "No class at this time"
+    except (IndexError, KeyError):
+        return "No data for the specified grade and class"
+
+    return current_subject
 
 if __name__ == '__main__':
     app.run(debug=True)
-
