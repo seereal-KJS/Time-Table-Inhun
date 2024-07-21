@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import datetime
-import pytz
 
 app = Flask(__name__)
 
@@ -14,10 +13,7 @@ student_data = pd.read_csv(STUDENT_SHEET_URL)
 timetable_data = pd.read_csv(TIMETABLE_SHEET_URL)
 
 def find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time=None, test_day=None):
-    now = datetime.datetime.now(pytz.utc)  # Get current UTC time
-    korea_tz = pytz.timezone('Asia/Seoul')  # Define the Korean time zone
-    now = now.astimezone(korea_tz)  # Convert UTC to Korean time
-
+    now = datetime.datetime.now()
     current_day = test_day if test_day is not None else now.weekday()  # 월요일=0, 일요일=6
     current_time = test_time if test_time else now.time()
 
