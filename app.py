@@ -5,6 +5,7 @@ import datetime
 app = Flask(__name__)
 
 # Google Sheets 설정
+STUDENT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/11RqrhH7lIUnCmOFM0RPZeqcMHT_OVGiFjMzfByJQCJw/export?format=csv'
 TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwKYh5vcD42b-slxa2QBnJx-8h9uo/export?format=csv'
 
 def get_sheet_data(url):
@@ -22,16 +23,18 @@ def index():
 def get_subject():
     grade = request.form['grade']
     class_number = request.form['class_number']
+    student_id = request.form['student_id']
+    student_data = get_sheet_data(STUDENT_SHEET_URL)
     timetable_data = get_sheet_data(TIMETABLE_SHEET_URL)
 
-    if timetable_data is None:
+    if student_data is None or timetable_data is None:
         return 'Error reading Google Sheets data.'
 
-    current_subject = find_current_subject(grade, class_number, timetable_data)
+    current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data)
 
     return render_template('subject.html', subject=current_subject)
 
-def find_current_subject(grade, class_number, timetable_data):
+def find_current_subject(grade, class_number, student_id, student_data, timetable_data):
     now = datetime.datetime.now()
     current_day = now.weekday()  # 월요일=0, 일요일=6
     current_time = now.time()
