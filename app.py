@@ -39,7 +39,8 @@ def get_subject():
         return 'Error reading Google Sheets data.'
 
     test_time = datetime.datetime.strptime(test_time_str, "%H:%M").time() if test_time_str else None
-    test_day = int(test_day_str) if test_day_str else None
+    days_mapping = {'월': 0, '화': 1, '수': 2, '목': 3, '금': 4}
+    test_day = days_mapping.get(test_day_str) if test_day_str else None
 
     current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time, test_day)
 
@@ -71,4 +72,24 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
             period_index = i
             break
 
-    # 쉬는 시간
+    # 쉬는 시간일 경우 다음 교시로 변경
+    if period_index == -1:
+        for i, (start, end) in enumerate(periods):
+            if current_time < start:
+                period_index = i
+                break
+
+    # 현재 교시가 마지막 교시 이후인 경우
+    if period_index == -1 or period_index >= len(periods):
+        return "No class at this time"
+
+    # 현재 요일과 교시에 맞는 시간표 정보 가져오기
+    try:
+        current_subject = timetable_data.loc[period_index, days[current_day]]
+    except (IndexError, KeyError):
+        return "No class at this time"
+
+    return current_subject
+
+if __name__ == '__main__':
+    app.run(debug=True)
