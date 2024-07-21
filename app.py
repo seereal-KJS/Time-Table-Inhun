@@ -10,7 +10,7 @@ TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwK
 
 def get_sheet_data(url):
     try:
-        return pd.read_csv(url, error_bad_lines=False, warn_bad_lines=True)
+        return pd.read_csv(url, on_bad_lines='warn')
     except pd.errors.ParserError as e:
         print("Error reading CSV:", e)
         return None
@@ -21,11 +21,17 @@ def index():
 
 @app.route('/subject', methods=['POST'])
 def get_subject():
-    grade = request.form['grade']
-    class_number = request.form['class_number']
-    student_id = request.form['student_id']
+    grade = request.form.get('grade')
+    class_number = request.form.get('class_number')
+    student_id = request.form.get('student_id')
+
+    print(f"Received: grade={grade}, class_number={class_number}, student_id={student_id}")
+
     student_data = get_sheet_data(STUDENT_SHEET_URL)
     timetable_data = get_sheet_data(TIMETABLE_SHEET_URL)
+
+    if not grade or not class_number or not student_id:
+        return 'Missing required fields.', 400
 
     if student_data is None or timetable_data is None:
         return 'Error reading Google Sheets data.'
