@@ -8,12 +8,9 @@ app = Flask(__name__)
 STUDENT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/11RqrhH7lIUnCmOFM0RPZeqcMHT_OVGiFjMzfByJQCJw/export?format=csv'
 TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwKYh5vcD42b-slxa2QBnJx-8h9uo/export?format=csv'
 
+# 데이터 로드 함수
 def get_sheet_data(url):
-    try:
-        return pd.read_csv(url, on_bad_lines='warn')
-    except pd.errors.ParserError as e:
-        print("Error reading CSV:", e)
-        return None
+    return pd.read_csv(url)
 
 @app.route('/')
 def index():
@@ -87,14 +84,12 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
     try:
         current_code = timetable_data.loc[period_index, days[current_day]]
         # 바로 출력 가능한 과목들
-        immediate_subjects = [
-            '확률과 통계', '영어 독해와 작문', '환경', '미술창작', '스포츠', '동아리', '자치'
-        ]
+        immediate_subjects = ['확률과 통계', '영어 독해와 작문', '환경', '미술창작', '스포츠', '동아리', '자치']
         if current_code in ['A', 'B', 'C', 'D', 'E', 'F', '교양']:
             # 학생의 선택과목 찾기
-            student_row = student_data[(student_data['Grade'] == int(grade)) & 
-                                       (student_data['Class'] == int(class_number)) & 
-                                       (student_data['Student ID'] == int(student_id))]
+            student_row = student_data[(student_data['학년'] == int(grade)) & 
+                                       (student_data['반'] == int(class_number)) & 
+                                       (student_data['번호'] == int(student_id))]
             if student_row.empty:
                 return "Student ID not found"
 
