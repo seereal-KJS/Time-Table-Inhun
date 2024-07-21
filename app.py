@@ -119,7 +119,11 @@ def get_subject():
     if not grade or not class_number or not student_id:
         return 'Missing required fields.', 400
 
-    test_time = datetime.datetime.strptime(test_time_str, "%H:%M").time() if test_time_str else None
+    try:
+        test_time = datetime.datetime.strptime(test_time_str, "%H:%M").time() if test_time_str else None
+    except ValueError:
+        return 'Invalid time format. Please use HH:MM format.', 400
+
     days_mapping = {'월': 0, '화': 1, '수': 2, '목': 3, '금': 4}
     test_day = days_mapping.get(test_day_str) if test_day_str else None
 
@@ -129,4 +133,3 @@ def get_subject():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
