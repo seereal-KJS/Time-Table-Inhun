@@ -73,6 +73,7 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
                                        (student_data['반'] == int(class_number)) & 
                                        (student_data['번호'] == int(student_id))]
             if student_row.empty:
+                print("Student ID not found")
                 return "Student ID not found"
 
             student_subjects = student_row.iloc[0].to_dict()
@@ -115,4 +116,3 @@ def get_subject():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
