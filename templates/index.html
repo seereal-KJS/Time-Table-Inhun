@@ -5,12 +5,14 @@
     <title>Subject Finder</title>
 </head>
 <body>
-    <h1>Enter Grade and Class Number</h1>
+    <h1>Enter Grade, Class Number, and Student ID</h1>
     <form action="/subject" method="post">
         <label for="grade">Grade:</label>
-        <input type="text" id="grade" name="grade">
+        <input type="text" id="grade" name="grade" required>
         <label for="class_number">Class Number:</label>
-        <input type="text" id="class_number" name="class_number">
+        <input type="text" id="class_number" name="class_number" required>
+        <label for="student_id">Student ID:</label>
+        <input type="text" id="student_id" name="student_id" required>
         <button type="submit">Find Subject</button>
     </form>
 </body>
