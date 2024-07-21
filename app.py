@@ -86,6 +86,10 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
     # 현재 요일과 교시에 맞는 시간표 정보 가져오기
     try:
         current_code = timetable_data.loc[period_index, days[current_day]]
+        # 바로 출력 가능한 과목들
+        immediate_subjects = [
+            '확률과 통계', '영어 독해와 작문', '환경', '미술창작', '스포츠', '동아리', '자치'
+        ]
         if current_code in ['A', 'B', 'C', 'D', 'E', 'F', '교양']:
             # 학생의 선택과목 찾기
             student_row = student_data[(student_data['Grade'] == int(grade)) & 
@@ -96,8 +100,10 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
 
             student_subjects = student_row.iloc[0].to_dict()
             current_subject = student_subjects.get(current_code, "Unknown Subject")
-        else:
+        elif current_code in immediate_subjects:
             current_subject = current_code
+        else:
+            current_subject = "Unknown Subject"
     except (IndexError, KeyError):
         return "No class at this time"
 
