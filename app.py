@@ -82,7 +82,7 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
         print(f"Current code: {current_code}")  # 디버깅용
         # 바로 출력 가능한 과목들
         immediate_subjects = ['확률과 통계', '영어 독해와 작문', '환경', '미술창작', '스포츠', '동아리', '자치']
-        if current_code in ['A', 'B', 'C', 'D', 'E', 'F', '교양']:
+        if current_code in ['a', 'b', 'c', 'd', 'e', 'f', '교양']:
             # 학생의 선택과목 찾기
             student_row = student_data[(student_data['학년'] == str(grade)) & 
                                        (student_data['반'] == str(class_number)) & 
