@@ -25,8 +25,9 @@ def get_subject():
     class_number = request.form.get('class_number')
     student_id = request.form.get('student_id')
     test_time_str = request.form.get('test_time')
+    test_day_str = request.form.get('test_day')
 
-    print(f"Received: grade={grade}, class_number={class_number}, student_id={student_id}, test_time={test_time_str}")
+    print(f"Received: grade={grade}, class_number={class_number}, student_id={student_id}, test_time={test_time_str}, test_day={test_day_str}")
 
     student_data = get_sheet_data(STUDENT_SHEET_URL)
     timetable_data = get_sheet_data(TIMETABLE_SHEET_URL)
@@ -38,13 +39,15 @@ def get_subject():
         return 'Error reading Google Sheets data.'
 
     test_time = datetime.datetime.strptime(test_time_str, "%H:%M").time() if test_time_str else None
-    current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time)
+    test_day = int(test_day_str) if test_day_str else None
+
+    current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time, test_day)
 
     return render_template('subject.html', subject=current_subject)
 
-def find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time=None):
+def find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time=None, test_day=None):
     now = datetime.datetime.now()
-    current_day = now.weekday()  # 월요일=0, 일요일=6
+    current_day = test_day if test_day is not None else now.weekday()  # 월요일=0, 일요일=6
     current_time = test_time if test_time else now.time()
 
     # 요일 맵핑
@@ -68,24 +71,4 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
             period_index = i
             break
 
-    # 쉬는 시간일 경우 다음 교시로 변경
-    if period_index == -1:
-        for i, (start, end) in enumerate(periods):
-            if current_time < start:
-                period_index = i
-                break
-
-    # 현재 교시가 마지막 교시 이후인 경우
-    if period_index == -1 or period_index >= len(periods):
-        return "No class at this time"
-
-    # 현재 요일과 교시에 맞는 시간표 정보 가져오기
-    try:
-        current_subject = timetable_data.loc[period_index, days[current_day]]
-    except (IndexError, KeyError):
-        return "No class at this time"
-
-    return current_subject
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    # 쉬는 시간
