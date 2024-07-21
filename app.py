@@ -10,14 +10,20 @@ TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwK
 
 # Load data
 try:
-    student_data = pd.read_csv(STUDENT_SHEET_URL, encoding='utf-8')
-    timetable_data = pd.read_csv(TIMETABLE_SHEET_URL, encoding='utf-8')
+    student_data = pd.read_csv(STUDENT_SHEET_URL, encoding='utf-8', header=2)  # 세 번째 행을 헤더로 사용
+    timetable_data = pd.read_csv(TIMETABLE_SHEET_URL, encoding='utf-8', header=0)  # 첫 번째 행을 헤더로 사용
 except Exception as e:
     print("Error loading data:", e)
     student_data = pd.DataFrame()
     timetable_data = pd.DataFrame()
 
 # Display the dataframes to ensure they are loaded correctly
+print("Student Data Columns:")
+print(student_data.columns)
+
+print("Timetable Data Columns:")
+print(timetable_data.columns)
+
 print("Student Data:")
 print(student_data.head())
 
