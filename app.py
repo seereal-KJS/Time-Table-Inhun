@@ -4,44 +4,25 @@ import datetime
 
 app = Flask(__name__)
 
-# Google Sheets 설정
+# Google Sheets URLs
 STUDENT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/11RqrhH7lIUnCmOFM0RPZeqcMHT_OVGiFjMzfByJQCJw/export?format=csv'
 TIMETABLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Fydu0QvrnIMI3qAwKYh5vcD42b-slxa2QBnJx-8h9uo/export?format=csv'
 
-# 데이터 로드 함수
-def get_sheet_data(url):
-    return pd.read_csv(url)
+# Load data
+try:
+    student_data = pd.read_csv(STUDENT_SHEET_URL, encoding='utf-8')
+    timetable_data = pd.read_csv(TIMETABLE_SHEET_URL, encoding='utf-8')
+except Exception as e:
+    print("Error loading data:", e)
+    student_data = pd.DataFrame()
+    timetable_data = pd.DataFrame()
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Display the dataframes to ensure they are loaded correctly
+print("Student Data:")
+print(student_data.head())
 
-@app.route('/subject', methods=['POST'])
-def get_subject():
-    grade = request.form.get('grade')
-    class_number = request.form.get('class_number')
-    student_id = request.form.get('student_id')
-    test_time_str = request.form.get('test_time')
-    test_day_str = request.form.get('test_day')
-
-    print(f"Received: grade={grade}, class_number={class_number}, student_id={student_id}, test_time={test_time_str}, test_day={test_day_str}")
-
-    student_data = get_sheet_data(STUDENT_SHEET_URL)
-    timetable_data = get_sheet_data(TIMETABLE_SHEET_URL)
-
-    if not grade or not class_number or not student_id:
-        return 'Missing required fields.', 400
-
-    if student_data is None or timetable_data is None:
-        return 'Error reading Google Sheets data.'
-
-    test_time = datetime.datetime.strptime(test_time_str, "%H:%M").time() if test_time_str else None
-    days_mapping = {'월': 0, '화': 1, '수': 2, '목': 3, '금': 4}
-    test_day = days_mapping.get(test_day_str) if test_day_str else None
-
-    current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time, test_day)
-
-    return render_template('subject.html', subject=current_subject)
+print("Timetable Data:")
+print(timetable_data.head())
 
 def find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time=None, test_day=None):
     now = datetime.datetime.now()
@@ -83,6 +64,7 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
     # 현재 요일과 교시에 맞는 시간표 정보 가져오기
     try:
         current_code = timetable_data.loc[period_index, days[current_day]]
+        print(f"Current code: {current_code}")  # 디버깅용
         # 바로 출력 가능한 과목들
         immediate_subjects = ['확률과 통계', '영어 독해와 작문', '환경', '미술창작', '스포츠', '동아리', '자치']
         if current_code in ['A', 'B', 'C', 'D', 'E', 'F', '교양']:
@@ -94,15 +76,43 @@ def find_current_subject(grade, class_number, student_id, student_data, timetabl
                 return "Student ID not found"
 
             student_subjects = student_row.iloc[0].to_dict()
+            print(f"Student subjects: {student_subjects}")  # 디버깅용
             current_subject = student_subjects.get(current_code, "Unknown Subject")
         elif current_code in immediate_subjects:
             current_subject = current_code
         else:
             current_subject = "Unknown Subject"
-    except (IndexError, KeyError):
+    except (IndexError, KeyError) as e:
+        print(f"Error: {e}")  # 디버깅용
         return "No class at this time"
 
     return current_subject
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/subject', methods=['POST'])
+def get_subject():
+    grade = request.form.get('grade')
+    class_number = request.form.get('class_number')
+    student_id = request.form.get('student_id')
+    test_time_str = request.form.get('test_time')
+    test_day_str = request.form.get('test_day')
+
+    print(f"Received: grade={grade}, class_number={class_number}, student_id={student_id}, test_time={test_time_str}, test_day={test_day_str}")
+
+    if not grade or not class_number or not student_id:
+        return 'Missing required fields.', 400
+
+    test_time = datetime.datetime.strptime(test_time_str, "%H:%M").time() if test_time_str else None
+    days_mapping = {'월': 0, '화': 1, '수': 2, '목': 3, '금': 4}
+    test_day = days_mapping.get(test_day_str) if test_day_str else None
+
+    current_subject = find_current_subject(grade, class_number, student_id, student_data, timetable_data, test_time, test_day)
+
+    return render_template('subject.html', subject=current_subject)
+
 if __name__ == '__main__':
     app.run(debug=True)
+
